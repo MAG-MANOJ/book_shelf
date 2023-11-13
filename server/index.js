@@ -1,4 +1,4 @@
-import express, { response } from "express";
+import express, { request, response } from "express";
 import mongoose from "mongoose";
 import { Book } from "./model/bookModel.js";
 
@@ -9,12 +9,11 @@ const PORT = 3000;
 app.use(express.json());
 
 app.get('/',(request,response)=>{
-    console.log(request.url);
     response.status(200).send('The application works good');
 })
 
+//add the book
 app.post('/books',async (request, response) =>{
-    console.log(request.url);
     try{
         if(!request.body.title || !request.body.author || !request.body.publishYear){
             response.status(400).send({message:'cannot access the required fields: title, auther, publishYear'});
@@ -30,6 +29,33 @@ app.post('/books',async (request, response) =>{
         console.log(error.message)
     }
 });
+
+// Get the Book
+app.get('/books',async(request, response)=>{
+    try{
+        const book = await Book.find();
+        response.status(200).json({
+            count: book.length,
+            data: book
+        })
+    }catch(error){
+        console.log(error.message);
+        response.status(500).send(error.message)
+    }
+})
+
+//get book by ID of the book
+app.get('/books/:id',async(request, response)=>{
+    try{
+        const {id} = request.params;
+        const book = await Book.findById(id);
+        response.status(200).send(book);
+        
+    }catch(error){
+        console.log(error.message);
+        response.status(500).send(error.message);
+    }
+})
 
 
 main().then(console.log('App connected with Database')).catch(err=>console.log(err.message));
