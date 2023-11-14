@@ -12,7 +12,7 @@ app.get('/',(request,response)=>{
     response.status(200).send('The application works good');
 })
 
-//add the book
+//add the book to the database
 app.post('/books',async (request, response) =>{
     try{
         if(!request.body.title || !request.body.author || !request.body.publishYear){
@@ -30,7 +30,62 @@ app.post('/books',async (request, response) =>{
     }
 });
 
-// Get the Book
+//Update the book by it's ID
+
+app.put('/books/:id',async(request, response)=>{
+    try{
+        if(!request.body.title || !request.body.author || !request.body.publishYear){
+            response.status(400).send({message:'cannot access the required fields: title, auther, publishYear'});
+        };
+
+        const {id} = request.params;
+        const isValidObjectId = mongoose.Types.ObjectId.isValid(id);
+        
+        if(!isValidObjectId){
+            return response.status(404).send({message:'Book not found'});
+        }
+
+        const result = await Book.findByIdAndUpdate(id,request.body);
+        
+        if (!result) {
+            return response.status(404).send({ message: 'Book not found' });
+        }
+
+        return response.status(200).send({message:'Book updated'})
+
+    }catch(error){
+        console.log(error.message);
+        response.status(500).send(error.message);
+    }
+})
+
+
+// Delete Book by it's ID
+app.delete('/books/:id',async(request,response)=>{
+
+    try{
+        const {id} = request.params;
+        const isValidObjectId = mongoose.Types.ObjectId.isValid(id);
+    
+        if(!isValidObjectId){
+            return response.status(404).send({message:"Book not Founded"});
+        }
+        const result = await Book.findByIdAndDelete(id);
+    
+        if(!result){
+            return response.status(404).send({message:"Book not Founded"});
+        }
+    
+        return response.status(200).send({message:"Book Deleted"});
+    }catch(error){
+        console.log(error.message);
+        response.status(500).send(error.message)
+    }
+
+})
+
+
+// Get the all Book
 app.get('/books',async(request, response)=>{
     try{
         const book = await Book.find();
@@ -44,7 +99,7 @@ app.get('/books',async(request, response)=>{
     }
 })
 
-//get book by ID of the book
+//Get book by ID of the book
 app.get('/books/:id',async(request, response)=>{
     try{
         const {id} = request.params;
